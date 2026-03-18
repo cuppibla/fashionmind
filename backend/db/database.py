@@ -1,37 +1,73 @@
 import os
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.pool import NullPool
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import NullPool
+
 from .models import Base
-from google.cloud.sql.connector import Connector, IPTypes
-import asyncpg
-import asyncio
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:pass@localhost/fashionmind")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://fashionmind_user:fashionmind_pass@localhost/fashionmind",
+)
 
-engine = None
 if "/cloudsql/" in DATABASE_URL:
-    # Use cloud-sql-python-connector
-    def getconn():
-        # Parsing DATABASE_URL is complex here; assuming standard connector pattern
-        pass 
-    # For now, just rely on raw URL fallback or connector logic based on env
-    # Simplification for demo purposes:
-    engine = create_async_engine(DATABASE_URL, poolclass=NullPool)
+    # Cloud SQL Python Connector path
+    from google.cloud.sql.connector import Connector
+
+    connector = Connector()
+
+    # Parse the cloud sql instance from the URL query param ?host=/cloudsql/...
+    import re
+    match = re.search(r"host=/cloudsql/([^&]+)", DATABASE_URL)
+    INSTANCE_CONNECTION_NAME = match.group(1) if match else ""
+
+    # Parse user/pass/db from URL
+    db_match = re.match(
+        r"postgresql\+asyncpg://([^:]+):([^@]+)@/([^?]+)", DATABASE_URL
+    )
+    DB_USER = db_match.group(1) if db_match else "fashionmind_user"
+    DB_PASS = db_match.group(2) if db_match else "fashionmind_pass"
+    DB_NAME = db_match.group(3) if db_match else "fashionmind"
+
+    async def _getconn():
+        return await connector.connect_async(
+            INSTANCE_CONNECTION_NAME,
+            "asyncpg",
+            user=DB_USER,
+            password=DB_PASS,
+            db=DB_NAME,
+        )
+
+    engine = create_async_engine(
+        "postgresql+asyncpg://",
+        async_creator=_getconn,
+        poolclass=NullPool,
+    )
 else:
     engine = create_async_engine(DATABASE_URL, poolclass=NullPool)
 
-async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+async_session = async_sessionmaker(
+    engine, expire_on_commit=False, class_=AsyncSession
+)
 
-async def get_db():
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
+
 
 @asynccontextmanager
-async def get_db_context():
+async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
 
-async def create_all_tables():
+
+async def create_all_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
