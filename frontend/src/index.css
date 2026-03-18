@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6); }
+  70%  { box-shadow: 0 0 0 14px rgba(244, 63, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1.4s ease-out infinite;
+}
