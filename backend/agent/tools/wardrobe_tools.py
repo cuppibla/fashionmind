@@ -2,6 +2,13 @@ import uuid
 from datetime import datetime, date, timedelta
 from typing import Optional
 
+
+def _to_uuid(user_id: str) -> Optional[uuid.UUID]:
+    try:
+        return uuid.UUID(user_id)
+    except (ValueError, AttributeError):
+        return None
+
 from sqlalchemy import select
 
 from db.database import get_db_context
@@ -12,8 +19,11 @@ async def get_user_context(user_id: str) -> dict:
     """Fetches the user's full profile including body type, upcoming occasions
     in the next 30 days, current wishlist items, and last 5 purchases.
     Call this at the start of every session to personalize responses."""
+    uid = _to_uuid(user_id)
+    if uid is None:
+        return {"error": f"Invalid user_id: {user_id!r}"}
     async with get_db_context() as db:
-        result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+        result = await db.execute(select(User).where(User.id == uid))
         user = result.scalar_one_or_none()
         if not user:
             return {"error": f"User {user_id} not found"}
@@ -24,7 +34,7 @@ async def get_user_context(user_id: str) -> dict:
         occ_result = await db.execute(
             select(Occasion)
             .where(
-                Occasion.user_id == uuid.UUID(user_id),
+                Occasion.user_id == uid,
                 Occasion.date >= today,
                 Occasion.date <= in_30,
             )
@@ -35,7 +45,7 @@ async def get_user_context(user_id: str) -> dict:
         wish_result = await db.execute(
             select(WishlistItem)
             .where(
-                WishlistItem.user_id == uuid.UUID(user_id),
+                WishlistItem.user_id == uid,
                 WishlistItem.status == "wishlist",
             )
             .order_by(WishlistItem.created_at.desc())
@@ -45,7 +55,7 @@ async def get_user_context(user_id: str) -> dict:
 
         purch_result = await db.execute(
             select(PurchaseHistory)
-            .where(PurchaseHistory.user_id == uuid.UUID(user_id))
+            .where(PurchaseHistory.user_id == uid)
             .order_by(PurchaseHistory.purchased_at.desc())
             .limit(5)
         )
@@ -96,11 +106,14 @@ async def get_upcoming_occasions(user_id: str) -> list:
     """Returns all of this user's upcoming occasions with dates and notes,
     sorted nearest first. Use when user asks what events they have coming up
     or needs outfit ideas for a specific upcoming date."""
+    uid = _to_uuid(user_id)
+    if uid is None:
+        return []
     async with get_db_context() as db:
         result = await db.execute(
             select(Occasion)
             .where(
-                Occasion.user_id == uuid.UUID(user_id),
+                Occasion.user_id == uid,
                 Occasion.date >= date.today(),
             )
             .order_by(Occasion.date.asc())
@@ -128,9 +141,12 @@ async def add_to_wishlist(
     """Saves an item to the user's wishlist. Call whenever the user expresses
     interest in buying something, says 'I love that', 'save that for me',
     or 'remind me to get...'."""
+    uid = _to_uuid(user_id)
+    if uid is None:
+        return {"success": False, "error": f"Invalid user_id: {user_id!r}"}
     async with get_db_context() as db:
         item = WishlistItem(
-            user_id=uuid.UUID(user_id),
+            user_id=uid,
             item_name=item_name,
             brand=brand or None,
             category=category or None,
@@ -146,11 +162,17 @@ async def add_to_wishlist(
 async def mark_purchased(user_id: str, item_id: str, notes: str = "") -> dict:
     """Marks a wishlist item as purchased and creates a purchase history record.
     Call when user says 'I bought it', 'I got the [item]', or 'I purchased...'."""
+    uid = _to_uuid(user_id)
+    if uid is None:
+        return {"success": False, "error": f"Invalid user_id: {user_id!r}"}
+    iid = _to_uuid(item_id)
+    if iid is None:
+        return {"success": False, "error": f"Invalid item_id: {item_id!r}"}
     async with get_db_context() as db:
         result = await db.execute(
             select(WishlistItem).where(
-                WishlistItem.id == uuid.UUID(item_id),
-                WishlistItem.user_id == uuid.UUID(user_id),
+                WishlistItem.id == iid,
+                WishlistItem.user_id == uid,
             )
         )
         item = result.scalar_one_or_none()
@@ -162,7 +184,7 @@ async def mark_purchased(user_id: str, item_id: str, notes: str = "") -> dict:
         item.purchased_at = now
 
         purchase = PurchaseHistory(
-            user_id=uuid.UUID(user_id),
+            user_id=uid,
             item_name=item.item_name,
             brand=item.brand,
             price=item.price,
@@ -181,6 +203,9 @@ async def add_occasion(
     """Adds a new event or occasion to the user's calendar. Call whenever the
     user mentions an upcoming event, trip, meeting, wedding, interview, or date.
     date must be ISO format YYYY-MM-DD."""
+    uid = _to_uuid(user_id)
+    if uid is None:
+        return {"success": False, "error": f"Invalid user_id: {user_id!r}"}
     from datetime import date as date_type
     async with get_db_context() as db:
         parsed_date = None
@@ -191,7 +216,7 @@ async def add_occasion(
                 pass
 
         occ = Occasion(
-            user_id=uuid.UUID(user_id),
+            user_id=uid,
             name=name,
             date=parsed_date,
             notes=notes or None,
@@ -206,15 +231,18 @@ async def get_style_summary(user_id: str) -> str:
     """Returns a plain text summary of the user's body type, color and style
     preferences inferred from purchase history, and upcoming occasions.
     Use to answer questions like 'what do you know about my style?'"""
+    uid = _to_uuid(user_id)
+    if uid is None:
+        return "No user data found."
     async with get_db_context() as db:
-        result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+        result = await db.execute(select(User).where(User.id == uid))
         user = result.scalar_one_or_none()
         if not user:
             return "No user data found."
 
         purch_result = await db.execute(
             select(PurchaseHistory)
-            .where(PurchaseHistory.user_id == uuid.UUID(user_id))
+            .where(PurchaseHistory.user_id == uid)
             .order_by(PurchaseHistory.purchased_at.desc())
             .limit(3)
         )
@@ -223,7 +251,7 @@ async def get_style_summary(user_id: str) -> str:
         occ_result = await db.execute(
             select(Occasion)
             .where(
-                Occasion.user_id == uuid.UUID(user_id),
+                Occasion.user_id == uid,
                 Occasion.date >= date.today(),
             )
             .order_by(Occasion.date.asc())

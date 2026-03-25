@@ -13,6 +13,7 @@ import {
 
 interface Props {
   userId: string;
+  sessionId?: string;
 }
 
 function formatDate(str?: string) {
@@ -25,10 +26,18 @@ function formatMonth(str: string) {
 }
 
 function Skeleton() {
-  return <div className="h-4 bg-slate-700 rounded animate-pulse w-full mb-2" />;
+  return <div className="h-4 bg-surface rounded animate-pulse w-full mb-2" />;
 }
 
-export default function UserSidePanel({ userId }: Props) {
+function SourceBadge({ label }: { label: string }) {
+  return (
+    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-tertiary bg-white/5 border border-white/10 rounded-full px-2.5 py-1">
+      {label}
+    </span>
+  );
+}
+
+export default function UserSidePanel({ userId, sessionId }: Props) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
@@ -58,50 +67,54 @@ export default function UserSidePanel({ userId }: Props) {
     }
   }, [userId]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { fetchAll(); }, [fetchAll, sessionId]);
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 p-4 gap-4 overflow-y-auto">
+    <div className="flex flex-col h-full bg-transparent p-5 gap-6 overflow-y-auto">
       {/* Profile card */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
+      <div className="bg-surface rounded-2xl border border-white/5 p-5 shadow-sm">
         {loading ? (
           <><Skeleton /><Skeleton /></>
         ) : user ? (
           <>
-            <h2 className="text-xl font-semibold text-white">{user.name}</h2>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-2xl font-bold text-white tracking-tight">{user.name}</h2>
+              <SourceBadge label="Cloud SQL" />
+            </div>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               {user.body_type && (
-                <span className="text-xs border border-rose-400 text-rose-400 rounded-full px-2 py-0.5">
+                <span className="text-xs font-semibold bg-primary/10 border border-primary/30 text-primary rounded-full px-3 py-1">
                   {user.body_type}
                 </span>
               )}
               {user.age && (
-                <span className="text-xs text-slate-400">Age: {user.age}</span>
+                <span className="text-sm font-medium text-tertiary">Age: {user.age}</span>
               )}
             </div>
           </>
         ) : (
-          <p className="text-slate-400 text-sm">No profile loaded</p>
+          <p className="text-tertiary text-sm">No profile loaded</p>
         )}
       </div>
 
-      <div className="h-px bg-slate-700" />
-
       {/* Upcoming Occasions */}
       <section>
-        <h3 className="text-sm font-semibold text-slate-300 mb-2">📅 Upcoming Occasions</h3>
+        <div className="flex items-center justify-between gap-3 mb-3 px-1">
+          <h3 className="text-sm font-bold tracking-wide text-tertiary uppercase">📅 Occasions</h3>
+          <SourceBadge label="Cloud SQL" />
+        </div>
         {loading ? <><Skeleton /><Skeleton /></> : occasions.length === 0 ? (
-          <p className="text-slate-500 text-xs italic">No occasions yet — ask FashionMind to add one!</p>
+          <p className="text-secondary text-sm italic px-1">No occasions yet</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {occasions.slice(0, 5).map((o) => (
-              <div key={o.id} className="bg-slate-800 rounded-lg border border-slate-700 px-3 py-2">
+              <div key={o.id} className="bg-surface rounded-xl border border-white/5 p-4 hover:border-primary/20 transition-colors">
                 <div className="flex justify-between items-center">
-                  <span className="text-white text-sm">{o.name}</span>
-                  <span className="text-rose-400 text-xs">{formatDate(o.date)}</span>
+                  <span className="text-white font-semibold">{o.name}</span>
+                  <span className="text-primary text-xs font-bold">{formatDate(o.date)}</span>
                 </div>
                 {o.notes && (
-                  <p className="text-slate-400 text-xs mt-0.5 truncate">{o.notes}</p>
+                  <p className="text-tertiary text-xs mt-1.5 line-clamp-2 leading-relaxed">{o.notes}</p>
                 )}
               </div>
             ))}
@@ -109,31 +122,32 @@ export default function UserSidePanel({ userId }: Props) {
         )}
       </section>
 
-      <div className="h-px bg-slate-700" />
-
       {/* Wishlist */}
       <section>
-        <h3 className="text-sm font-semibold text-slate-300 mb-2">🛍️ Wishlist</h3>
+        <div className="flex items-center justify-between gap-3 mb-3 px-1">
+          <h3 className="text-sm font-bold tracking-wide text-tertiary uppercase">🛍️ Wishlist</h3>
+          <SourceBadge label="Cloud SQL" />
+        </div>
         {loading ? <><Skeleton /><Skeleton /></> : wishlist.length === 0 ? (
-          <p className="text-slate-500 text-xs italic">Nothing saved yet.</p>
+          <p className="text-secondary text-sm italic px-1">Nothing saved yet</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {wishlist.slice(0, 5).map((w) => (
-              <div key={w.id} className="bg-slate-800 rounded-lg border border-slate-700 px-3 py-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-white text-sm">{w.item_name}</span>
-                  <span className={`text-xs rounded px-1 py-0.5 ${
+              <div key={w.id} className="bg-surface rounded-xl border border-white/5 p-4">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-white font-medium text-sm flex-1 leading-snug">{w.item_name}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 whitespace-nowrap ${
                     w.status === "purchased"
-                      ? "bg-green-600 text-white"
-                      : "border border-slate-500 text-slate-400"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      : "bg-secondary/30 text-tertiary border border-white/10"
                   }`}>
                     {w.status}
                   </span>
                 </div>
-                <div className="flex gap-2 mt-0.5 flex-wrap">
-                  {w.brand && <span className="text-slate-400 text-xs">{w.brand}</span>}
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {w.brand && <span className="text-tertiary text-xs font-semibold">{w.brand}</span>}
                   {w.category && (
-                    <span className="text-xs bg-slate-700 rounded px-1">{w.category}</span>
+                    <span className="text-[10px] bg-white/5 text-tertiary rounded px-1.5 py-0.5">{w.category}</span>
                   )}
                 </div>
               </div>
@@ -142,21 +156,23 @@ export default function UserSidePanel({ userId }: Props) {
         )}
       </section>
 
-      <div className="h-px bg-slate-700" />
-
       {/* Recent Purchases */}
       <section>
-        <h3 className="text-sm font-semibold text-slate-300 mb-2">🧾 Recent Purchases</h3>
+        <div className="flex items-center justify-between gap-3 mb-3 px-1">
+          <h3 className="text-sm font-bold tracking-wide text-tertiary uppercase">🧾 Purchases</h3>
+          <SourceBadge label="Cloud SQL" />
+        </div>
         {loading ? <Skeleton /> : purchases.length === 0 ? (
-          <p className="text-slate-500 text-xs italic">No purchases yet.</p>
+          <p className="text-secondary text-sm italic px-1">No purchases yet</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {purchases.slice(0, 3).map((p) => (
-              <div key={p.id} className="bg-slate-800 rounded-lg border border-slate-700 px-3 py-2">
-                <span className="text-white text-sm">{p.item_name}</span>
-                <div className="flex gap-2 mt-0.5">
-                  {p.brand && <span className="text-slate-400 text-xs">{p.brand}</span>}
-                  <span className="text-slate-500 text-xs">{formatMonth(p.purchased_at)}</span>
+              <div key={p.id} className="bg-surface rounded-xl border border-white/5 p-3 flex flex-col gap-1">
+                <span className="text-white text-sm font-medium">{p.item_name}</span>
+                <div className="flex gap-2 items-center">
+                  {p.brand && <span className="text-tertiary text-[11px] font-bold">{p.brand}</span>}
+                  {p.brand && <span className="text-white/20 text-[10px]">•</span>}
+                  <span className="text-secondary text-[11px]">{formatMonth(p.purchased_at)}</span>
                 </div>
               </div>
             ))}
@@ -164,19 +180,23 @@ export default function UserSidePanel({ userId }: Props) {
         )}
       </section>
 
-      <div className="h-px bg-slate-700" />
-
       {/* Memory */}
-      <section>
-        <h3 className="text-sm font-semibold text-slate-300 mb-2">🧠 What I Remember</h3>
+      <section className="mb-4">
+        <div className="flex items-center justify-between gap-3 mb-3 px-1">
+          <h3 className="text-sm font-bold tracking-wide text-tertiary uppercase">🧠 Memory</h3>
+          <SourceBadge label="Memory Bank" />
+        </div>
         {loading ? <Skeleton /> : memories.length === 0 ? (
-          <p className="text-slate-500 text-xs italic">
-            Start a conversation — FashionMind will remember your style!
+          <p className="text-secondary text-sm italic px-1">
+            Start a conversation, share a style detail, then refresh to load cross-session memory.
           </p>
         ) : (
-          <div className="flex flex-col gap-1">
+          <div className="bg-surface/50 rounded-xl p-4 border border-white/5 flex flex-col gap-2">
             {memories.map((m, i) => (
-              <p key={i} className="text-slate-400 text-xs italic">{m}</p>
+              <div key={i} className="flex gap-2 items-start">
+                <span className="text-primary text-xs mt-0.5">✦</span>
+                <p className="text-tertiary text-xs leading-relaxed">{m}</p>
+              </div>
             ))}
           </div>
         )}
@@ -185,9 +205,9 @@ export default function UserSidePanel({ userId }: Props) {
       {/* Refresh */}
       <button
         onClick={fetchAll}
-        className="mt-auto text-slate-500 text-xs hover:text-white transition-colors self-center"
+        className="mt-auto py-2 px-4 rounded-full bg-surface text-tertiary text-xs font-bold hover:bg-white/10 hover:text-white transition-colors self-center border border-white/5 shadow-sm"
       >
-        ↻ Refresh
+        ↻ Refresh Cloud SQL + Memory
       </button>
     </div>
   );

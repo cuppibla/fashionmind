@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export interface UserProfile {
   id: string;
@@ -33,6 +33,15 @@ export interface PurchaseItem {
   notes?: string;
 }
 
+export interface Product {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  price: number;
+  images: string[];
+  category: string | null;
+}
+
 export interface Message {
   role: "user" | "agent";
   text: string;
@@ -62,3 +71,8 @@ export const getPurchases = (userId: string) =>
 
 export const getMemory = (userId: string) =>
   request<{ memories: string[] }>(`/api/users/${userId}/memory`);
+
+export const getProducts = (category?: string) => {
+  const params = category ? `?category=${encodeURIComponent(category)}` : "";
+  return request<Product[]>(`/api/products${params}`);
+};

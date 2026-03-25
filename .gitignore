@@ -1,5 +1,6 @@
 # Environments
 .env
+backend/.env
 .env.*
 !.env.example
 .venv/
@@ -47,3 +48,11 @@ MANIFEST
 .vscode/
 *.swp
 *.swo
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Claude Code local config
+.claude/

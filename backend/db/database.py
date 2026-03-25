@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, StaticPool
 
 from .models import Base
 
@@ -18,9 +18,7 @@ DATABASE_URL = os.getenv(
 
 if "/cloudsql/" in DATABASE_URL:
     # Cloud SQL Python Connector path
-    from google.cloud.sql.connector import Connector
-
-    connector = Connector()
+    from google.cloud.sql.connector import Connector, create_async_connector
 
     # Parse the cloud sql instance from the URL query param ?host=/cloudsql/...
     import re
@@ -35,8 +33,13 @@ if "/cloudsql/" in DATABASE_URL:
     DB_PASS = db_match.group(2) if db_match else "fashionmind_pass"
     DB_NAME = db_match.group(3) if db_match else "fashionmind"
 
+    _connector = None
+
     async def _getconn():
-        return await connector.connect_async(
+        global _connector
+        if _connector is None:
+            _connector = await create_async_connector()
+        return await _connector.connect_async(
             INSTANCE_CONNECTION_NAME,
             "asyncpg",
             user=DB_USER,
@@ -48,6 +51,12 @@ if "/cloudsql/" in DATABASE_URL:
         "postgresql+asyncpg://",
         async_creator=_getconn,
         poolclass=NullPool,
+    )
+elif DATABASE_URL.startswith("sqlite"):
+    engine = create_async_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
 else:
     engine = create_async_engine(DATABASE_URL, poolclass=NullPool)

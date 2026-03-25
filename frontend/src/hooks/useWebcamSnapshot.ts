@@ -1,10 +1,17 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 export function useWebcamSnapshot() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement("canvas"));
   const [isCameraOn, setIsCameraOn] = useState(false);
+
+  // Attach stream to video element after it renders into the DOM
+  useEffect(() => {
+    if (isCameraOn && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [isCameraOn]);
 
   const startCamera = useCallback(async () => {
     try {

@@ -42,6 +42,17 @@ class WishlistItem(Base):
     created_at = Column(DateTime, default=func.now())
     user = relationship("User", back_populates="wishlist_items")
 
+class Product(Base):
+    __tablename__ = 'products'
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(200), nullable=False)
+    subtitle = Column(String(200), nullable=True)
+    price = Column(Numeric(10, 2), nullable=False)
+    images = Column(Text, nullable=True)  # JSON array of image URL strings
+    category = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=func.now())
+
+
 class PurchaseHistory(Base):
     __tablename__ = 'purchase_history'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
