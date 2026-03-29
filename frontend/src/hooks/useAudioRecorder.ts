@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from "react";
 
 const CAPTURE_SAMPLE_RATE = 16000;
-const BUFFER_SIZE = 512;
+const BUFFER_SIZE = 256;
 const SILENCE_RMS_THRESHOLD = 0.012;
 
 interface UseAudioRecorderOptions {

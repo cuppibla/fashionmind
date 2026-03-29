@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Message } from "../api/client";
+import { Message, Product } from "../api/client";
 import { useAudioPlayer } from "./useAudioPlayer";
 
 const WS_BASE =
@@ -34,6 +34,7 @@ export function useADKWebSocket(userId: string, sessionId: string) {
     "disconnected" | "connecting" | "live" | "error"
   >("disconnected");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const retriesRef = useRef(0);
   const reconnectTimeoutRef = useRef<number | null>(null);
@@ -46,6 +47,7 @@ export function useADKWebSocket(userId: string, sessionId: string) {
 
   useEffect(() => {
     setMessages([]);
+    setRecommendedProducts([]);
   }, [sessionId]);
 
   const connect = useCallback(() => {
@@ -74,6 +76,28 @@ export function useADKWebSocket(userId: string, sessionId: string) {
 
       try {
         const event = JSON.parse(evt.data);
+
+        // Product recommendations pushed by the backend when the agent calls
+        // recommend_products(). Replace the current set so the panel always
+        // shows the most recent recommendation.
+        if (event.type === "product_recommendations") {
+          const products = event.products ?? [];
+          console.log(
+            `[recs] product_recommendations received: ${products.length} product(s)`,
+            products.map((p: any) => ({ id: p.id, title: p.title })),
+          );
+          setRecommendedProducts(products);
+          return;
+        }
+
+        // Log any function_call events that reach the frontend (for diagnostics)
+        const parts = event?.content?.parts ?? event?.serverContent?.modelTurn?.parts ?? [];
+        for (const part of parts) {
+          const fn = part?.functionCall ?? part?.function_call;
+          if (fn) {
+            console.log(`[tool-call] ${fn.name}(`, fn.args, `)`);
+          }
+        }
 
         const audioParts = extractAudioParts(event);
         if (audioParts.length > 0) {
@@ -165,6 +189,7 @@ export function useADKWebSocket(userId: string, sessionId: string) {
     }
   }, []);
 
+
   const sendText = useCallback((text: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "text", text }));
@@ -185,6 +210,7 @@ export function useADKWebSocket(userId: string, sessionId: string) {
     isConnected,
     connectionStatus,
     messages,
+    recommendedProducts,
     sendAudioChunk,
     sendSnapshot,
     sendText,

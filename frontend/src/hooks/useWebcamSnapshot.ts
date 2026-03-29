@@ -35,6 +35,7 @@ export function useWebcamSnapshot() {
     setIsCameraOn(false);
   }, []);
 
+  // Capture a 640×480 JPEG snapshot for the explicit "Share Detail" action.
   const captureSnapshot = useCallback((): string => {
     const video = videoRef.current;
     if (!video) return "";

@@ -227,6 +227,15 @@ async def add_occasion(
         return {"success": True, "occasion_id": str(occ.id)}
 
 
+async def recommend_products(product_ids: list[str]) -> dict:
+    """Signal the UI to visually highlight specific products from the catalog.
+    Call this alongside your spoken recommendation when you want the user to
+    see specific items on screen. Use the exact id values from the [Catalog]
+    context provided at session start. No DB query is made — this is a pure
+    UI signal."""
+    return {"status": "ok", "highlighted": len(product_ids)}
+
+
 async def get_style_summary(user_id: str) -> str:
     """Returns a plain text summary of the user's body type, color and style
     preferences inferred from purchase history, and upcoming occasions.

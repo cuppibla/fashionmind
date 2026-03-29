@@ -30,6 +30,7 @@ export default function App() {
   const {
     connectionStatus,
     messages,
+    recommendedProducts,
     sendAudioChunk,
     sendSnapshot,
     sendText,
@@ -67,7 +68,7 @@ export default function App() {
 
       {/* 25% Width - Merchant Catalog Panel */}
       <div className="w-1/4 overflow-hidden shadow-[-10px_0_20px_-10px_rgba(0,0,0,0.5)] z-10">
-        <MerchantCatalogPanel />
+        <MerchantCatalogPanel recommendedProducts={recommendedProducts} />
       </div>
     </div>
   );

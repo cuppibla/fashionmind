@@ -89,11 +89,12 @@ export default function ConversationPanel({
   };
 
   const handleShareOutfit = () => {
+    if (sentFlash) return; // cooldown — button is disabled for 3s after each share
     const b64 = captureSnapshot();
-    if (b64) {
+    if (b64 && connectionStatus === "live") {
       sendSnapshot(b64);
       setSentFlash(true);
-      setTimeout(() => setSentFlash(false), 1500);
+      setTimeout(() => setSentFlash(false), 3000);
     }
   };
 
@@ -217,9 +218,10 @@ export default function ConversationPanel({
             <>
               <button
                 onClick={handleShareOutfit}
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 shadow-sm border bg-surface
-                  ${sentFlash 
-                    ? "border-emerald-500/40 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
+                disabled={sentFlash || connectionStatus !== "live"}
+                className={`w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 shadow-sm border bg-surface disabled:cursor-not-allowed
+                  ${sentFlash
+                    ? "border-emerald-500/40 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                     : "border-white/5 text-tertiary hover:bg-white/5 hover:text-white hover:border-white/10"
                   }`}
               >
