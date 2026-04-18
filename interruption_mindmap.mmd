@@ -1,0 +1,16 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": true, "background": "#0d1117", "primaryColor": "#1e2d40", "primaryTextColor": "#ffffff", "primaryBorderColor": "#4299e1", "lineColor": "#4299e1", "secondaryColor": "#2d1b4e", "tertiaryColor": "#0c2318"}} }%%
+mindmap
+  root((Interruption<br/>Handling))
+    (Agent Speaking)
+      "I'd recommend the navy blazer..."
+    (Annie Interrupts)
+      "Wait, I changed my mind"
+      ::icon(fas fa-microphone)
+      (VAD instantly detects voice)
+    (System Response)
+      [Concurrent Asyncio Tasks]
+      (Task 1: Output)
+        Agent goes silent mid-sentence
+      (Task 2: Input)
+        Processes new direction
+        Zero blocking of each other

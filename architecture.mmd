@@ -1,0 +1,102 @@
+%%{init: {"theme": "dark", "themeVariables": {"darkMode": true, "background": "#0d1117", "primaryColor": "#1e2d40", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#4299e1", "lineColor": "#718096", "secondaryColor": "#1a2634", "tertiaryColor": "#2d1b4e"}} }%%
+flowchart TB
+
+    %% ── Browser ──────────────────────────────────────────────────────────
+    subgraph BROWSER["🌐  BROWSER"]
+        direction LR
+        MIC["🎤 Microphone\nPCM 16 kHz"]
+        CAM["📷 Camera\nJPEG frames"]
+        UI["FashionMind UI\n+ Catalog Panel"]
+    end
+
+    %% ── FastAPI Server ───────────────────────────────────────────────────
+    subgraph SERVER["⚡  FASTAPI SERVER"]
+        direction TB
+        WS["WebSocket\n/ws/{user_id}/{session_id}"]
+        CACHE["In-Memory Product Cache\nloaded from Cloud SQL at startup"]
+
+        subgraph INIT["SESSION START  ·  three parallel injections, all non-blocking"]
+            direction LR
+            I1["❶  user_id\nt = 0 ms · sync"]
+            I2["❷  product catalog\nt ≈ 5 ms · from cache"]
+            I3["❸  past memory\nt ≈ 1500 ms · Vertex AI"]
+        end
+
+        LRQ["LiveRequestQueue"]
+        RECS["Product Rec Detector\nwatches event stream for\nrecommend_products() calls"]
+    end
+
+    %% ── ADK Runner ───────────────────────────────────────────────────────
+    subgraph ADK["🤖  ADK RUNNER"]
+        AGENT["fashion_advisor Agent\nGemini Live 2.5 Flash · native audio · bidi streaming"]
+        CB["after_agent_callback\nadd_session_to_memory()"]
+    end
+
+    %% ── Cloud SQL ────────────────────────────────────────────────────────
+    subgraph CSQL["🐘  CLOUD SQL  ·  structured certainty"]
+        direction LR
+        CTX["get_user_context()\n─────────────────────────────\nprofile · upcoming occasions\nwishlist · recent purchases\nfresh query · every session"]
+        WR["Turn-by-turn writes\n─────────────────────────────\nadd_to_wishlist()\nmark_purchased()\nadd_occasion()\nATOMIC · this turn · immediate"]
+        PROD["products table\n→ cache at startup"]
+    end
+
+    %% ── Vertex AI Memory Bank ────────────────────────────────────────────
+    subgraph MB["🧠  VERTEX AI MEMORY BANK  ·  accumulated understanding"]
+        direction LR
+        MS["search_memory()\n─────────────────────────────\nsemantic search across 7 topics\n~1500 ms round-trip"]
+        ME["add_session_to_memory()\n─────────────────────────────\ngemini-2.5-flash auto-extracts\nvoice + camera observations\nbackground task · never blocks\nruns after Annie hears response"]
+        MT["Topics:\nstyle_identity  ·  signature_items\ncomfort_constraints  ·  event_context\nvisual_style_markers\n+ USER_PREFERENCES  ·  USER_PERSONAL_INFO"]
+    end
+
+    %% ── Edges: Browser ↔ Server ──────────────────────────────────────────
+    MIC -->|"audio stream"| WS
+    CAM -->|"image + prompt"| WS
+    WS -->|"agent voice + transcription + events"| UI
+    RECS -->|"type: product_recommendations\ncross-checked against cache"| UI
+
+    %% ── Edges: Startup ───────────────────────────────────────────────────
+    PROD -->|"SELECT * FROM products\nonce at server startup"| CACHE
+    CACHE --> I2
+
+    %% ── Edges: Memory Bank read → session injection ───────────────────────
+    MT -.->|"topics guide retrieval"| MS
+    MS --> I3
+
+    %% ── Edges: Session start injections → queue ──────────────────────────
+    I1 --> LRQ
+    I2 --> LRQ
+    I3 --> LRQ
+
+    %% ── Edges: Audio/image/text → queue → ADK ────────────────────────────
+    WS -->|"audio / image / text"| LRQ
+    LRQ --> AGENT
+    AGENT --> CB
+
+    %% ── Edges: ADK → out ────────────────────────────────────────────────█
+    AGENT -->|"audio + events"| WS
+    AGENT -->|"event stream"| RECS
+
+    %% ── Edges: Cloud SQL reads ───────────────────────────────────────────
+    CTX -->|"called before first reply\nget_user_context(user_id)"| AGENT
+
+    %% ── Edges: Cloud SQL writes ──────────────────────────────────────────
+    AGENT -->|"explicit user actions"| WR
+
+    %% ── Edges: Memory Bank write ─────────────────────────────────────────
+    CB -->|"background task"| ME
+    MT -.->|"topics guide extraction"| ME
+
+    %% ── Styles ────────────────────────────────────────────────────────────
+    classDef browser  fill:#0f2744,stroke:#4299e1,color:#e2e8f0
+    classDef server   fill:#1a1a2e,stroke:#6366f1,color:#e2e8f0
+    classDef adk      fill:#1e1034,stroke:#9f7aea,color:#e2e8f0
+    classDef csql     fill:#0c2318,stroke:#48bb78,color:#e2e8f0
+    classDef mb       fill:#2e0f20,stroke:#f687b3,color:#e2e8f0
+    classDef init     fill:#1a1a0a,stroke:#f6e05e,color:#fefce8
+
+    class MIC,CAM,UI browser
+    class WS,CACHE,LRQ,RECS server
+    class AGENT,CB adk
+    class CTX,WR,PROD csql
+    class MS,ME,MT mb
+    class I1,I2,I3 init

@@ -1,0 +1,24 @@
+%%{init: {"theme": "dark", "themeVariables": {"darkMode": true, "background": "#0d1117", "primaryColor": "#1e2d40", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#4299e1", "lineColor": "#718096", "secondaryColor": "#1a2634", "tertiaryColor": "#2d1b4e"}} }%%
+sequenceDiagram
+    participant User as Annie (User)
+    participant VAD as Voice Activity Detection
+    participant AgentOut as Agent Output Task
+    participant AgentIn as Agent Input Task
+
+    Note over User, AgentIn: INTERRUPTION HANDLING — WHAT SEPARATES VOICE AI FROM A RECORDING
+
+    AgentOut->>User: "I'd recommend the navy blazer because it—"
+    
+    Note over User: Annie Interrupts
+    User->>VAD: "Actually wait, I changed my mind"
+    
+    par Two concurrent asyncio tasks — neither blocks the other
+        VAD->>AgentOut: Detects voice activity
+        Note over AgentOut: Agent stops mid-sentence
+        AgentOut-->>User: (Audio playback halted)
+    and
+        VAD->>AgentIn: Streams new audio
+        Note over AgentIn: Processes Annie's interruption immediately
+        AgentIn-->>AgentOut: Generate new response
+        AgentOut->>User: Responds to new direction
+    end

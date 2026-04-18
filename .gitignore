@@ -56,3 +56,8 @@ MANIFEST
 
 # Claude Code local config
 .claude/
+
+# Docs
+docs/
+*.md
+!README.md

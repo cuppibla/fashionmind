@@ -1,0 +1,53 @@
+%%{init: {"theme": "dark", "themeVariables": {"darkMode": true, "background": "#0d1117", "primaryColor": "#1e2d40", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#4299e1", "lineColor": "#718096", "secondaryColor": "#1a2634", "tertiaryColor": "#2d1b4e"}} }%%
+flowchart TB
+
+    subgraph FRONTEND["📱 Client / Frontend Layer"]
+        direction LR
+        BROWSER["Web Browser UI\n(Fashion Catalog Panel)"]
+        AV["Media Capture\n(PCM Audio Mic · JPEG Cam)"]
+    end
+
+    subgraph BACKEND["⚡ Backend Application Layer"]
+        direction TB
+        WS["FastAPI WebSocket Server\n(Bi-Directional Streaming)"]
+        LRQ["LiveRequestQueue\n(Session Lifecycle & Context Injection)"]
+        
+        WS <==>|"Audio & Event Stream"| LRQ
+    end
+
+    subgraph AI["🤖 Agent & LLM Layer"]
+        direction TB
+        ADK["Agent Development Kit (ADK)\n(Session Runner & Callbacks)"]
+        GEMINI["Gemini Live 2.5 Flash\n(Native Audio Processing)"]
+        
+        ADK <==>|"Manages streaming session"| GEMINI
+    end
+
+    subgraph STORAGE["🗄️ Storage & Memory Layer"]
+        direction LR
+        SQL["Cloud SQL\n[Explicit Structured Data]\n(User Profiles, Wishlist, Purchases)"]
+        VERTEX["Vertex AI\n[Implicit Memory Bank]\n(Vector Search for Style Preferences)"]
+    end
+
+    %% Cross-layer Interactions
+    FRONTEND <==>|"WebSocket Stream"| WS
+    LRQ <==>|"Audio/Video blocks"| ADK
+    
+    %% Explicit Data Lifecycle
+    LRQ -.->|"1. Context Injection (Start)"| SQL
+    ADK -->|"2. Tool Calls: add_to_wishlist() (Mid-turn)"| SQL
+    
+    %% Implicit Memory Lifecycle
+    LRQ -.->|"1. Semantic Search (Start)"| VERTEX
+    ADK -->|"2. Background Extraction (End-turn)"| VERTEX
+
+    %% Styles
+    classDef frontend  fill:#0f2744,stroke:#4299e1,color:#e2e8f0
+    classDef backend   fill:#1a1a2e,stroke:#6366f1,color:#e2e8f0
+    classDef ai        fill:#1e1034,stroke:#9f7aea,color:#e2e8f0
+    classDef storage   fill:#0c2318,stroke:#48bb78,color:#e2e8f0
+
+    class FRONTEND,BROWSER,AV frontend
+    class BACKEND,WS,LRQ backend
+    class AI,ADK,GEMINI ai
+    class STORAGE,SQL,VERTEX storage
