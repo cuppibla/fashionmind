@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from "react";
 
 export function useAudioPlayer() {
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const nextPlayTimeRef = useRef<number>(0);
   const pendingChunksRef = useRef<Array<{ data: string; mimeType?: string }>>([]);
   const activeSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
@@ -34,7 +35,13 @@ export function useAudioPlayer() {
 
     if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
       audioCtxRef.current = new AudioContextCtor({ sampleRate: 24000 });
-      console.log("[audio] Created AudioContext, state:", audioCtxRef.current.state);
+      // Create AnalyserNode for lip-sync — passthrough to destination
+      const analyser = audioCtxRef.current.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
+      analyser.connect(audioCtxRef.current.destination);
+      analyserRef.current = analyser;
+      console.log("[audio] Created AudioContext + AnalyserNode, state:", audioCtxRef.current.state);
     }
 
     if (audioCtxRef.current.state === "suspended") {
@@ -66,7 +73,7 @@ export function useAudioPlayer() {
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    source.connect(analyserRef.current ?? ctx.destination);
     activeSourcesRef.current.add(source);
 
     const now = ctx.currentTime;
@@ -145,5 +152,5 @@ export function useAudioPlayer() {
     playChunk(ctx, base64PcmData, mimeType);
   }, [playChunk]);
 
-  return { enqueueAudioChunk, isPlaying, warmUp, stopPlayback };
+  return { enqueueAudioChunk, isPlaying, warmUp, stopPlayback, analyserRef, getAudioContext, audioCtxRef };
 }

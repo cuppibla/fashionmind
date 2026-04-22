@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Avatar Frame Picker</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0d1117; color: #e6edf3; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 8px; color: #58a6ff; }
+    .subtitle { text-align: center; color: #8b949e; margin-bottom: 24px; }
+
+    .targets { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+                background: #161b22; padding: 16px; border-radius: 12px; border: 1px solid #30363d; }
+    .target { flex: 1; min-width: 200px; padding: 12px; border-radius: 8px;
+               background: #0d1117; border: 1px solid #21262d; }
+    .target-name { display: block; font-weight: 700; color: #79c0ff; font-size: 14px; }
+    .target-desc { display: block; font-size: 11px; color: #8b949e; margin: 4px 0 8px; }
+    .target select { width: 100%; padding: 6px; border-radius: 6px;
+                      background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
+    .preview { width: 100%; margin-top: 8px; border-radius: 6px; }
+
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 8px; }
+    .card { cursor: pointer; border-radius: 8px; overflow: hidden;
+             background: #161b22; border: 2px solid transparent; transition: all 0.2s; }
+    .card:hover { border-color: #58a6ff; transform: scale(1.03); }
+    .card.selected { border-color: #3fb950; }
+    .card img { width: 100%; display: block; }
+    .label { text-align: center; font-size: 11px; padding: 4px; color: #8b949e; }
+
+    .command-box { margin-top: 24px; padding: 16px; background: #161b22; border-radius: 12px;
+                    border: 1px solid #30363d; }
+    .command-box h3 { color: #3fb950; margin-bottom: 8px; }
+    #command { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+                color: #f0883e; word-break: break-all; white-space: pre-wrap; user-select: all;
+                background: #0d1117; padding: 12px; border-radius: 8px; cursor: text; }
+</style></head>
+<body>
+<h1>🐼 Avatar Frame Picker</h1>
+<p class="subtitle">Select the best frame for each mouth shape. The command below auto-updates.</p>
+
+<div class="targets">
+        <div class="target" id="target-idle">
+            <span class="target-name">idle.png</span>
+            <span class="target-desc">Mouth closed, gentle smile (resting face)</span>
+            <select id="select-idle" onchange="updateCommand()">
+                <option value="">— pick frame —</option>
+                <option value="1">Frame #1</option><option value="2">Frame #2</option><option value="3">Frame #3</option><option value="4">Frame #4</option><option value="5">Frame #5</option><option value="6">Frame #6</option><option value="7">Frame #7</option><option value="8">Frame #8</option><option value="9">Frame #9</option><option value="10">Frame #10</option><option value="11">Frame #11</option><option value="12">Frame #12</option><option value="13">Frame #13</option><option value="14">Frame #14</option><option value="15">Frame #15</option><option value="16">Frame #16</option><option value="17">Frame #17</option><option value="18">Frame #18</option><option value="19">Frame #19</option><option value="20">Frame #20</option><option value="21">Frame #21</option><option value="22">Frame #22</option><option value="23">Frame #23</option><option value="24">Frame #24</option><option value="25">Frame #25</option><option value="26">Frame #26</option><option value="27">Frame #27</option><option value="28">Frame #28</option><option value="29">Frame #29</option><option value="30">Frame #30</option><option value="31">Frame #31</option><option value="32">Frame #32</option><option value="33">Frame #33</option><option value="34">Frame #34</option><option value="35">Frame #35</option><option value="36">Frame #36</option><option value="37">Frame #37</option><option value="38">Frame #38</option><option value="39">Frame #39</option><option value="40">Frame #40</option><option value="41">Frame #41</option><option value="42">Frame #42</option><option value="43">Frame #43</option><option value="44">Frame #44</option><option value="45">Frame #45</option><option value="46">Frame #46</option><option value="47">Frame #47</option><option value="48">Frame #48</option><option value="49">Frame #49</option><option value="50">Frame #50</option><option value="51">Frame #51</option><option value="52">Frame #52</option><option value="53">Frame #53</option><option value="54">Frame #54</option><option value="55">Frame #55</option><option value="56">Frame #56</option><option value="57">Frame #57</option><option value="58">Frame #58</option><option value="59">Frame #59</option><option value="60">Frame #60</option><option value="61">Frame #61</option><option value="62">Frame #62</option><option value="63">Frame #63</option><option value="64">Frame #64</option><option value="65">Frame #65</option><option value="66">Frame #66</option><option value="67">Frame #67</option><option value="68">Frame #68</option><option value="69">Frame #69</option><option value="70">Frame #70</option><option value="71">Frame #71</option><option value="72">Frame #72</option><option value="73">Frame #73</option><option value="74">Frame #74</option><option value="75">Frame #75</option><option value="76">Frame #76</option><option value="77">Frame #77</option><option value="78">Frame #78</option><option value="79">Frame #79</option><option value="80">Frame #80</option>
+            </select>
+            <img id="preview-idle" class="preview" src="" style="display:none">
+        </div>
+        <div class="target" id="target-consonant">
+            <span class="target-name">consonant.png</span>
+            <span class="target-desc">Mouth barely open, lips lightly parted</span>
+            <select id="select-consonant" onchange="updateCommand()">
+                <option value="">— pick frame —</option>
+                <option value="1">Frame #1</option><option value="2">Frame #2</option><option value="3">Frame #3</option><option value="4">Frame #4</option><option value="5">Frame #5</option><option value="6">Frame #6</option><option value="7">Frame #7</option><option value="8">Frame #8</option><option value="9">Frame #9</option><option value="10">Frame #10</option><option value="11">Frame #11</option><option value="12">Frame #12</option><option value="13">Frame #13</option><option value="14">Frame #14</option><option value="15">Frame #15</option><option value="16">Frame #16</option><option value="17">Frame #17</option><option value="18">Frame #18</option><option value="19">Frame #19</option><option value="20">Frame #20</option><option value="21">Frame #21</option><option value="22">Frame #22</option><option value="23">Frame #23</option><option value="24">Frame #24</option><option value="25">Frame #25</option><option value="26">Frame #26</option><option value="27">Frame #27</option><option value="28">Frame #28</option><option value="29">Frame #29</option><option value="30">Frame #30</option><option value="31">Frame #31</option><option value="32">Frame #32</option><option value="33">Frame #33</option><option value="34">Frame #34</option><option value="35">Frame #35</option><option value="36">Frame #36</option><option value="37">Frame #37</option><option value="38">Frame #38</option><option value="39">Frame #39</option><option value="40">Frame #40</option><option value="41">Frame #41</option><option value="42">Frame #42</option><option value="43">Frame #43</option><option value="44">Frame #44</option><option value="45">Frame #45</option><option value="46">Frame #46</option><option value="47">Frame #47</option><option value="48">Frame #48</option><option value="49">Frame #49</option><option value="50">Frame #50</option><option value="51">Frame #51</option><option value="52">Frame #52</option><option value="53">Frame #53</option><option value="54">Frame #54</option><option value="55">Frame #55</option><option value="56">Frame #56</option><option value="57">Frame #57</option><option value="58">Frame #58</option><option value="59">Frame #59</option><option value="60">Frame #60</option><option value="61">Frame #61</option><option value="62">Frame #62</option><option value="63">Frame #63</option><option value="64">Frame #64</option><option value="65">Frame #65</option><option value="66">Frame #66</option><option value="67">Frame #67</option><option value="68">Frame #68</option><option value="69">Frame #69</option><option value="70">Frame #70</option><option value="71">Frame #71</option><option value="72">Frame #72</option><option value="73">Frame #73</option><option value="74">Frame #74</option><option value="75">Frame #75</option><option value="76">Frame #76</option><option value="77">Frame #77</option><option value="78">Frame #78</option><option value="79">Frame #79</option><option value="80">Frame #80</option>
+            </select>
+            <img id="preview-consonant" class="preview" src="" style="display:none">
+        </div>
+        <div class="target" id="target-mouth_O">
+            <span class="target-name">mouth_O.png</span>
+            <span class="target-desc">Lips puckered into a round 'O' shape</span>
+            <select id="select-mouth_O" onchange="updateCommand()">
+                <option value="">— pick frame —</option>
+                <option value="1">Frame #1</option><option value="2">Frame #2</option><option value="3">Frame #3</option><option value="4">Frame #4</option><option value="5">Frame #5</option><option value="6">Frame #6</option><option value="7">Frame #7</option><option value="8">Frame #8</option><option value="9">Frame #9</option><option value="10">Frame #10</option><option value="11">Frame #11</option><option value="12">Frame #12</option><option value="13">Frame #13</option><option value="14">Frame #14</option><option value="15">Frame #15</option><option value="16">Frame #16</option><option value="17">Frame #17</option><option value="18">Frame #18</option><option value="19">Frame #19</option><option value="20">Frame #20</option><option value="21">Frame #21</option><option value="22">Frame #22</option><option value="23">Frame #23</option><option value="24">Frame #24</option><option value="25">Frame #25</option><option value="26">Frame #26</option><option value="27">Frame #27</option><option value="28">Frame #28</option><option value="29">Frame #29</option><option value="30">Frame #30</option><option value="31">Frame #31</option><option value="32">Frame #32</option><option value="33">Frame #33</option><option value="34">Frame #34</option><option value="35">Frame #35</option><option value="36">Frame #36</option><option value="37">Frame #37</option><option value="38">Frame #38</option><option value="39">Frame #39</option><option value="40">Frame #40</option><option value="41">Frame #41</option><option value="42">Frame #42</option><option value="43">Frame #43</option><option value="44">Frame #44</option><option value="45">Frame #45</option><option value="46">Frame #46</option><option value="47">Frame #47</option><option value="48">Frame #48</option><option value="49">Frame #49</option><option value="50">Frame #50</option><option value="51">Frame #51</option><option value="52">Frame #52</option><option value="53">Frame #53</option><option value="54">Frame #54</option><option value="55">Frame #55</option><option value="56">Frame #56</option><option value="57">Frame #57</option><option value="58">Frame #58</option><option value="59">Frame #59</option><option value="60">Frame #60</option><option value="61">Frame #61</option><option value="62">Frame #62</option><option value="63">Frame #63</option><option value="64">Frame #64</option><option value="65">Frame #65</option><option value="66">Frame #66</option><option value="67">Frame #67</option><option value="68">Frame #68</option><option value="69">Frame #69</option><option value="70">Frame #70</option><option value="71">Frame #71</option><option value="72">Frame #72</option><option value="73">Frame #73</option><option value="74">Frame #74</option><option value="75">Frame #75</option><option value="76">Frame #76</option><option value="77">Frame #77</option><option value="78">Frame #78</option><option value="79">Frame #79</option><option value="80">Frame #80</option>
+            </select>
+            <img id="preview-mouth_O" class="preview" src="" style="display:none">
+        </div>
+        <div class="target" id="target-mouth_A">
+            <span class="target-name">mouth_A.png</span>
+            <span class="target-desc">Mouth wide open (big 'aah')</span>
+            <select id="select-mouth_A" onchange="updateCommand()">
+                <option value="">— pick frame —</option>
+                <option value="1">Frame #1</option><option value="2">Frame #2</option><option value="3">Frame #3</option><option value="4">Frame #4</option><option value="5">Frame #5</option><option value="6">Frame #6</option><option value="7">Frame #7</option><option value="8">Frame #8</option><option value="9">Frame #9</option><option value="10">Frame #10</option><option value="11">Frame #11</option><option value="12">Frame #12</option><option value="13">Frame #13</option><option value="14">Frame #14</option><option value="15">Frame #15</option><option value="16">Frame #16</option><option value="17">Frame #17</option><option value="18">Frame #18</option><option value="19">Frame #19</option><option value="20">Frame #20</option><option value="21">Frame #21</option><option value="22">Frame #22</option><option value="23">Frame #23</option><option value="24">Frame #24</option><option value="25">Frame #25</option><option value="26">Frame #26</option><option value="27">Frame #27</option><option value="28">Frame #28</option><option value="29">Frame #29</option><option value="30">Frame #30</option><option value="31">Frame #31</option><option value="32">Frame #32</option><option value="33">Frame #33</option><option value="34">Frame #34</option><option value="35">Frame #35</option><option value="36">Frame #36</option><option value="37">Frame #37</option><option value="38">Frame #38</option><option value="39">Frame #39</option><option value="40">Frame #40</option><option value="41">Frame #41</option><option value="42">Frame #42</option><option value="43">Frame #43</option><option value="44">Frame #44</option><option value="45">Frame #45</option><option value="46">Frame #46</option><option value="47">Frame #47</option><option value="48">Frame #48</option><option value="49">Frame #49</option><option value="50">Frame #50</option><option value="51">Frame #51</option><option value="52">Frame #52</option><option value="53">Frame #53</option><option value="54">Frame #54</option><option value="55">Frame #55</option><option value="56">Frame #56</option><option value="57">Frame #57</option><option value="58">Frame #58</option><option value="59">Frame #59</option><option value="60">Frame #60</option><option value="61">Frame #61</option><option value="62">Frame #62</option><option value="63">Frame #63</option><option value="64">Frame #64</option><option value="65">Frame #65</option><option value="66">Frame #66</option><option value="67">Frame #67</option><option value="68">Frame #68</option><option value="69">Frame #69</option><option value="70">Frame #70</option><option value="71">Frame #71</option><option value="72">Frame #72</option><option value="73">Frame #73</option><option value="74">Frame #74</option><option value="75">Frame #75</option><option value="76">Frame #76</option><option value="77">Frame #77</option><option value="78">Frame #78</option><option value="79">Frame #79</option><option value="80">Frame #80</option>
+            </select>
+            <img id="preview-mouth_A" class="preview" src="" style="display:none">
+        </div>
+        <div class="target" id="target-mouth_E">
+            <span class="target-name">mouth_E.png</span>
+            <span class="target-desc">Mouth stretched horizontally ('eee', may show teeth)</span>
+            <select id="select-mouth_E" onchange="updateCommand()">
+                <option value="">— pick frame —</option>
+                <option value="1">Frame #1</option><option value="2">Frame #2</option><option value="3">Frame #3</option><option value="4">Frame #4</option><option value="5">Frame #5</option><option value="6">Frame #6</option><option value="7">Frame #7</option><option value="8">Frame #8</option><option value="9">Frame #9</option><option value="10">Frame #10</option><option value="11">Frame #11</option><option value="12">Frame #12</option><option value="13">Frame #13</option><option value="14">Frame #14</option><option value="15">Frame #15</option><option value="16">Frame #16</option><option value="17">Frame #17</option><option value="18">Frame #18</option><option value="19">Frame #19</option><option value="20">Frame #20</option><option value="21">Frame #21</option><option value="22">Frame #22</option><option value="23">Frame #23</option><option value="24">Frame #24</option><option value="25">Frame #25</option><option value="26">Frame #26</option><option value="27">Frame #27</option><option value="28">Frame #28</option><option value="29">Frame #29</option><option value="30">Frame #30</option><option value="31">Frame #31</option><option value="32">Frame #32</option><option value="33">Frame #33</option><option value="34">Frame #34</option><option value="35">Frame #35</option><option value="36">Frame #36</option><option value="37">Frame #37</option><option value="38">Frame #38</option><option value="39">Frame #39</option><option value="40">Frame #40</option><option value="41">Frame #41</option><option value="42">Frame #42</option><option value="43">Frame #43</option><option value="44">Frame #44</option><option value="45">Frame #45</option><option value="46">Frame #46</option><option value="47">Frame #47</option><option value="48">Frame #48</option><option value="49">Frame #49</option><option value="50">Frame #50</option><option value="51">Frame #51</option><option value="52">Frame #52</option><option value="53">Frame #53</option><option value="54">Frame #54</option><option value="55">Frame #55</option><option value="56">Frame #56</option><option value="57">Frame #57</option><option value="58">Frame #58</option><option value="59">Frame #59</option><option value="60">Frame #60</option><option value="61">Frame #61</option><option value="62">Frame #62</option><option value="63">Frame #63</option><option value="64">Frame #64</option><option value="65">Frame #65</option><option value="66">Frame #66</option><option value="67">Frame #67</option><option value="68">Frame #68</option><option value="69">Frame #69</option><option value="70">Frame #70</option><option value="71">Frame #71</option><option value="72">Frame #72</option><option value="73">Frame #73</option><option value="74">Frame #74</option><option value="75">Frame #75</option><option value="76">Frame #76</option><option value="77">Frame #77</option><option value="78">Frame #78</option><option value="79">Frame #79</option><option value="80">Frame #80</option>
+            </select>
+            <img id="preview-mouth_E" class="preview" src="" style="display:none">
+        </div>
+        <div class="target" id="target-blink">
+            <span class="target-name">blink.png</span>
+            <span class="target-desc">Eyes fully closed, content expression</span>
+            <select id="select-blink" onchange="updateCommand()">
+                <option value="">— pick frame —</option>
+                <option value="1">Frame #1</option><option value="2">Frame #2</option><option value="3">Frame #3</option><option value="4">Frame #4</option><option value="5">Frame #5</option><option value="6">Frame #6</option><option value="7">Frame #7</option><option value="8">Frame #8</option><option value="9">Frame #9</option><option value="10">Frame #10</option><option value="11">Frame #11</option><option value="12">Frame #12</option><option value="13">Frame #13</option><option value="14">Frame #14</option><option value="15">Frame #15</option><option value="16">Frame #16</option><option value="17">Frame #17</option><option value="18">Frame #18</option><option value="19">Frame #19</option><option value="20">Frame #20</option><option value="21">Frame #21</option><option value="22">Frame #22</option><option value="23">Frame #23</option><option value="24">Frame #24</option><option value="25">Frame #25</option><option value="26">Frame #26</option><option value="27">Frame #27</option><option value="28">Frame #28</option><option value="29">Frame #29</option><option value="30">Frame #30</option><option value="31">Frame #31</option><option value="32">Frame #32</option><option value="33">Frame #33</option><option value="34">Frame #34</option><option value="35">Frame #35</option><option value="36">Frame #36</option><option value="37">Frame #37</option><option value="38">Frame #38</option><option value="39">Frame #39</option><option value="40">Frame #40</option><option value="41">Frame #41</option><option value="42">Frame #42</option><option value="43">Frame #43</option><option value="44">Frame #44</option><option value="45">Frame #45</option><option value="46">Frame #46</option><option value="47">Frame #47</option><option value="48">Frame #48</option><option value="49">Frame #49</option><option value="50">Frame #50</option><option value="51">Frame #51</option><option value="52">Frame #52</option><option value="53">Frame #53</option><option value="54">Frame #54</option><option value="55">Frame #55</option><option value="56">Frame #56</option><option value="57">Frame #57</option><option value="58">Frame #58</option><option value="59">Frame #59</option><option value="60">Frame #60</option><option value="61">Frame #61</option><option value="62">Frame #62</option><option value="63">Frame #63</option><option value="64">Frame #64</option><option value="65">Frame #65</option><option value="66">Frame #66</option><option value="67">Frame #67</option><option value="68">Frame #68</option><option value="69">Frame #69</option><option value="70">Frame #70</option><option value="71">Frame #71</option><option value="72">Frame #72</option><option value="73">Frame #73</option><option value="74">Frame #74</option><option value="75">Frame #75</option><option value="76">Frame #76</option><option value="77">Frame #77</option><option value="78">Frame #78</option><option value="79">Frame #79</option><option value="80">Frame #80</option>
+            </select>
+            <img id="preview-blink" class="preview" src="" style="display:none">
+        </div></div>
+
+<div class="command-box">
+    <h3>📋 Copy & run this command when ready:</h3>
+    <div id="command">Select frames above first...</div>
+</div>
+
+<h2 style="margin: 24px 0 12px; color: #58a6ff;">All Frames (80 total)</h2>
+<div class="gallery">
+        <div class="card" onclick="selectFrame(1, 'frame_0001.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0001.png" alt="frame_0001.png">
+            <div class="label">#1 — frame_0001.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(2, 'frame_0002.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0002.png" alt="frame_0002.png">
+            <div class="label">#2 — frame_0002.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(3, 'frame_0003.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0003.png" alt="frame_0003.png">
+            <div class="label">#3 — frame_0003.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(4, 'frame_0004.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0004.png" alt="frame_0004.png">
+            <div class="label">#4 — frame_0004.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(5, 'frame_0005.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0005.png" alt="frame_0005.png">
+            <div class="label">#5 — frame_0005.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(6, 'frame_0006.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0006.png" alt="frame_0006.png">
+            <div class="label">#6 — frame_0006.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(7, 'frame_0007.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0007.png" alt="frame_0007.png">
+            <div class="label">#7 — frame_0007.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(8, 'frame_0008.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0008.png" alt="frame_0008.png">
+            <div class="label">#8 — frame_0008.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(9, 'frame_0009.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0009.png" alt="frame_0009.png">
+            <div class="label">#9 — frame_0009.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(10, 'frame_0010.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0010.png" alt="frame_0010.png">
+            <div class="label">#10 — frame_0010.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(11, 'frame_0011.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0011.png" alt="frame_0011.png">
+            <div class="label">#11 — frame_0011.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(12, 'frame_0012.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0012.png" alt="frame_0012.png">
+            <div class="label">#12 — frame_0012.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(13, 'frame_0013.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0013.png" alt="frame_0013.png">
+            <div class="label">#13 — frame_0013.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(14, 'frame_0014.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0014.png" alt="frame_0014.png">
+            <div class="label">#14 — frame_0014.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(15, 'frame_0015.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0015.png" alt="frame_0015.png">
+            <div class="label">#15 — frame_0015.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(16, 'frame_0016.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0016.png" alt="frame_0016.png">
+            <div class="label">#16 — frame_0016.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(17, 'frame_0017.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0017.png" alt="frame_0017.png">
+            <div class="label">#17 — frame_0017.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(18, 'frame_0018.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0018.png" alt="frame_0018.png">
+            <div class="label">#18 — frame_0018.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(19, 'frame_0019.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0019.png" alt="frame_0019.png">
+            <div class="label">#19 — frame_0019.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(20, 'frame_0020.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0020.png" alt="frame_0020.png">
+            <div class="label">#20 — frame_0020.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(21, 'frame_0021.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0021.png" alt="frame_0021.png">
+            <div class="label">#21 — frame_0021.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(22, 'frame_0022.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0022.png" alt="frame_0022.png">
+            <div class="label">#22 — frame_0022.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(23, 'frame_0023.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0023.png" alt="frame_0023.png">
+            <div class="label">#23 — frame_0023.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(24, 'frame_0024.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0024.png" alt="frame_0024.png">
+            <div class="label">#24 — frame_0024.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(25, 'frame_0025.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0025.png" alt="frame_0025.png">
+            <div class="label">#25 — frame_0025.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(26, 'frame_0026.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0026.png" alt="frame_0026.png">
+            <div class="label">#26 — frame_0026.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(27, 'frame_0027.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0027.png" alt="frame_0027.png">
+            <div class="label">#27 — frame_0027.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(28, 'frame_0028.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0028.png" alt="frame_0028.png">
+            <div class="label">#28 — frame_0028.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(29, 'frame_0029.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0029.png" alt="frame_0029.png">
+            <div class="label">#29 — frame_0029.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(30, 'frame_0030.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0030.png" alt="frame_0030.png">
+            <div class="label">#30 — frame_0030.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(31, 'frame_0031.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0031.png" alt="frame_0031.png">
+            <div class="label">#31 — frame_0031.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(32, 'frame_0032.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0032.png" alt="frame_0032.png">
+            <div class="label">#32 — frame_0032.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(33, 'frame_0033.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0033.png" alt="frame_0033.png">
+            <div class="label">#33 — frame_0033.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(34, 'frame_0034.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0034.png" alt="frame_0034.png">
+            <div class="label">#34 — frame_0034.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(35, 'frame_0035.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0035.png" alt="frame_0035.png">
+            <div class="label">#35 — frame_0035.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(36, 'frame_0036.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0036.png" alt="frame_0036.png">
+            <div class="label">#36 — frame_0036.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(37, 'frame_0037.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0037.png" alt="frame_0037.png">
+            <div class="label">#37 — frame_0037.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(38, 'frame_0038.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0038.png" alt="frame_0038.png">
+            <div class="label">#38 — frame_0038.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(39, 'frame_0039.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0039.png" alt="frame_0039.png">
+            <div class="label">#39 — frame_0039.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(40, 'frame_0040.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0040.png" alt="frame_0040.png">
+            <div class="label">#40 — frame_0040.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(41, 'frame_0041.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0041.png" alt="frame_0041.png">
+            <div class="label">#41 — frame_0041.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(42, 'frame_0042.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0042.png" alt="frame_0042.png">
+            <div class="label">#42 — frame_0042.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(43, 'frame_0043.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0043.png" alt="frame_0043.png">
+            <div class="label">#43 — frame_0043.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(44, 'frame_0044.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0044.png" alt="frame_0044.png">
+            <div class="label">#44 — frame_0044.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(45, 'frame_0045.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0045.png" alt="frame_0045.png">
+            <div class="label">#45 — frame_0045.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(46, 'frame_0046.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0046.png" alt="frame_0046.png">
+            <div class="label">#46 — frame_0046.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(47, 'frame_0047.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0047.png" alt="frame_0047.png">
+            <div class="label">#47 — frame_0047.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(48, 'frame_0048.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0048.png" alt="frame_0048.png">
+            <div class="label">#48 — frame_0048.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(49, 'frame_0049.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0049.png" alt="frame_0049.png">
+            <div class="label">#49 — frame_0049.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(50, 'frame_0050.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0050.png" alt="frame_0050.png">
+            <div class="label">#50 — frame_0050.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(51, 'frame_0051.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0051.png" alt="frame_0051.png">
+            <div class="label">#51 — frame_0051.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(52, 'frame_0052.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0052.png" alt="frame_0052.png">
+            <div class="label">#52 — frame_0052.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(53, 'frame_0053.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0053.png" alt="frame_0053.png">
+            <div class="label">#53 — frame_0053.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(54, 'frame_0054.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0054.png" alt="frame_0054.png">
+            <div class="label">#54 — frame_0054.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(55, 'frame_0055.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0055.png" alt="frame_0055.png">
+            <div class="label">#55 — frame_0055.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(56, 'frame_0056.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0056.png" alt="frame_0056.png">
+            <div class="label">#56 — frame_0056.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(57, 'frame_0057.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0057.png" alt="frame_0057.png">
+            <div class="label">#57 — frame_0057.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(58, 'frame_0058.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0058.png" alt="frame_0058.png">
+            <div class="label">#58 — frame_0058.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(59, 'frame_0059.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0059.png" alt="frame_0059.png">
+            <div class="label">#59 — frame_0059.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(60, 'frame_0060.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0060.png" alt="frame_0060.png">
+            <div class="label">#60 — frame_0060.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(61, 'frame_0061.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0061.png" alt="frame_0061.png">
+            <div class="label">#61 — frame_0061.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(62, 'frame_0062.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0062.png" alt="frame_0062.png">
+            <div class="label">#62 — frame_0062.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(63, 'frame_0063.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0063.png" alt="frame_0063.png">
+            <div class="label">#63 — frame_0063.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(64, 'frame_0064.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0064.png" alt="frame_0064.png">
+            <div class="label">#64 — frame_0064.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(65, 'frame_0065.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0065.png" alt="frame_0065.png">
+            <div class="label">#65 — frame_0065.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(66, 'frame_0066.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0066.png" alt="frame_0066.png">
+            <div class="label">#66 — frame_0066.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(67, 'frame_0067.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0067.png" alt="frame_0067.png">
+            <div class="label">#67 — frame_0067.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(68, 'frame_0068.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0068.png" alt="frame_0068.png">
+            <div class="label">#68 — frame_0068.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(69, 'frame_0069.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0069.png" alt="frame_0069.png">
+            <div class="label">#69 — frame_0069.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(70, 'frame_0070.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0070.png" alt="frame_0070.png">
+            <div class="label">#70 — frame_0070.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(71, 'frame_0071.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0071.png" alt="frame_0071.png">
+            <div class="label">#71 — frame_0071.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(72, 'frame_0072.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0072.png" alt="frame_0072.png">
+            <div class="label">#72 — frame_0072.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(73, 'frame_0073.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0073.png" alt="frame_0073.png">
+            <div class="label">#73 — frame_0073.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(74, 'frame_0074.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0074.png" alt="frame_0074.png">
+            <div class="label">#74 — frame_0074.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(75, 'frame_0075.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0075.png" alt="frame_0075.png">
+            <div class="label">#75 — frame_0075.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(76, 'frame_0076.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0076.png" alt="frame_0076.png">
+            <div class="label">#76 — frame_0076.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(77, 'frame_0077.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0077.png" alt="frame_0077.png">
+            <div class="label">#77 — frame_0077.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(78, 'frame_0078.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0078.png" alt="frame_0078.png">
+            <div class="label">#78 — frame_0078.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(79, 'frame_0079.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0079.png" alt="frame_0079.png">
+            <div class="label">#79 — frame_0079.png</div>
+        </div>
+        <div class="card" onclick="selectFrame(80, 'frame_0080.png')">
+            <img src="file:///Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames/frame_0080.png" alt="frame_0080.png">
+            <div class="label">#80 — frame_0080.png</div>
+        </div></div>
+
+<script>
+const FRAMES_DIR = "/Users/annie/Documents/Demo/fashionmind/scripts/avatar_video_output/panda-avatar-9ca37ef1_frames";
+const FRAME_NAMES = ['idle', 'consonant', 'mouth_O', 'mouth_A', 'mouth_E', 'blink'];
+let currentTarget = null;
+
+function selectFrame(num, filename) {
+    if (!currentTarget) {
+        // If no target selected, find first empty one
+        for (const name of FRAME_NAMES) {
+            const sel = document.getElementById('select-' + name);
+            if (!sel.value) { currentTarget = name; break; }
+        }
+        if (!currentTarget) currentTarget = FRAME_NAMES[0];
+    }
+    document.getElementById('select-' + currentTarget).value = num;
+    updateCommand();
+    // Move to next target
+    const idx = FRAME_NAMES.indexOf(currentTarget);
+    if (idx < FRAME_NAMES.length - 1) currentTarget = FRAME_NAMES[idx + 1];
+}
+
+function updateCommand() {
+    const picks = [];
+    let allPicked = true;
+    for (const name of FRAME_NAMES) {
+        const sel = document.getElementById('select-' + name);
+        const preview = document.getElementById('preview-' + name);
+        if (sel.value) {
+            picks.push(name + '=' + sel.value);
+            const framePath = FRAMES_DIR + '/frame_' + String(sel.value).padStart(4, '0') + '.png';
+            preview.src = 'file://' + framePath;
+            preview.style.display = 'block';
+        } else {
+            allPicked = false;
+            preview.style.display = 'none';
+        }
+    }
+    const cmdEl = document.getElementById('command');
+    if (picks.length === 0) {
+        cmdEl.textContent = 'Select frames above first...';
+    } else {
+        cmdEl.textContent = 'python scripts/extract_avatar_frames.py scripts/avatar_video_output/VIDEO.mp4 --pick ' + picks.join(' ');
+    }
+}
+</script>
+</body></html>

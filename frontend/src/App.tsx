@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { createSession } from "./api/client";
 import { useADKWebSocket } from "./hooks/useADKWebSocket";
-import ConversationPanel from "./components/ConversationPanel";
-import UserSidePanel from "./components/UserSidePanel";
-import MerchantCatalogPanel from "./components/MerchantCatalogPanel";
+import CatalogBrowsePage from "./components/CatalogBrowsePage";
+import ConnectingOverlay from "./components/ConnectingOverlay";
+import ConversationView from "./components/ConversationView";
 
 const DEFAULT_USER_ID = "123e4567-e89b-12d3-a456-426614174000";
 
+type AppMode = "browse" | "connecting" | "live";
+
 export default function App() {
+  const [appMode, setAppMode] = useState<AppMode>("browse");
   const [sessionId, setSessionId] = useState<string>("");
   const [isCreatingSession, setIsCreatingSession] = useState(false);
 
@@ -18,58 +21,82 @@ export default function App() {
       setSessionId(res.session_id);
     } catch (e) {
       console.error("Failed to create session:", e);
+      setAppMode("browse");
     } finally {
       setIsCreatingSession(false);
     }
   }, []);
 
-  useEffect(() => {
-    void startNewSession();
-  }, [startNewSession]);
-
   const {
     connectionStatus,
     messages,
     recommendedProducts,
+    memoryRecall,
+    userContext,
+    toolCallLog,
     sendAudioChunk,
     sendSnapshot,
     sendText,
     signalTurnEnd,
     warmUpAudio,
     stopAudioPlayback,
-    ws,
-  } =
-    useADKWebSocket(DEFAULT_USER_ID, sessionId);
+    wsRef,
+    analyserRef,
+    isAudioPlaying,
+    getAudioContext,
+  } = useADKWebSocket(DEFAULT_USER_ID, sessionId);
+
+  // Phone gesture → create session + transition to connecting
+  const handlePhoneGesture = useCallback(async () => {
+    if (appMode !== "browse") return;
+    setAppMode("connecting");
+    await startNewSession();
+  }, [appMode, startNewSession]);
+
+  // Auto-transition: connecting → live when WebSocket connects
+  useEffect(() => {
+    if (appMode === "connecting" && connectionStatus === "live") {
+      setAppMode("live");
+    }
+  }, [appMode, connectionStatus]);
+
+  // End call → back to browse
+  const handleEndCall = useCallback(() => {
+    setAppMode("browse");
+    setSessionId(""); // This will close the WebSocket via useADKWebSocket
+  }, []);
 
   return (
-    <div className="h-screen w-full flex bg-app overflow-hidden font-sans text-white">
-      {/* 25% Width - User Side Panel */}
-      <div className="w-1/4 border-r border-white/5 overflow-hidden">
-        <UserSidePanel userId={DEFAULT_USER_ID} sessionId={sessionId} />
-      </div>
-      
-      {/* 50% Width - Conversation Panel */}
-      <div className="w-1/2 border-r border-white/5 overflow-hidden bg-app">
-        <ConversationPanel
-          userId={DEFAULT_USER_ID}
+    <>
+      {/* Browse mode — full-screen catalog */}
+      {appMode === "browse" && (
+        <CatalogBrowsePage onPhoneGesture={handlePhoneGesture} />
+      )}
+
+      {/* Connecting overlay */}
+      {appMode === "connecting" && <ConnectingOverlay />}
+
+      {/* Live conversation — 2-column layout */}
+      {appMode === "live" && (
+        <ConversationView
           connectionStatus={connectionStatus}
           messages={messages}
+          recommendedProducts={recommendedProducts}
+          memoryRecall={memoryRecall}
+          userContext={userContext}
+          toolCallLog={toolCallLog}
           sendAudioChunk={sendAudioChunk}
           sendSnapshot={sendSnapshot}
           warmUpAudio={warmUpAudio}
           stopAudioPlayback={stopAudioPlayback}
           signalTurnEnd={signalTurnEnd}
-          ws={ws}
-          sessionId={sessionId}
-          onNewSession={startNewSession}
-          isCreatingSession={isCreatingSession}
+          wsRef={wsRef}
+          getAudioContext={getAudioContext}
+          analyserRef={analyserRef}
+          isAudioPlaying={isAudioPlaying}
+          onEndCall={handleEndCall}
         />
-      </div>
-
-      {/* 25% Width - Merchant Catalog Panel */}
-      <div className="w-1/4 overflow-hidden shadow-[-10px_0_20px_-10px_rgba(0,0,0,0.5)] z-10">
-        <MerchantCatalogPanel recommendedProducts={recommendedProducts} />
-      </div>
-    </div>
+      )}
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Message, Product } from "../api/client";
+import { Message, MemoryRecallEvent, Product, ToolCallEvent, UserContextEvent } from "../api/client";
 import { useAudioPlayer } from "./useAudioPlayer";
 
 const WS_BASE =
@@ -35,11 +35,14 @@ export function useADKWebSocket(userId: string, sessionId: string) {
   >("disconnected");
   const [messages, setMessages] = useState<Message[]>([]);
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+  const [memoryRecall, setMemoryRecall] = useState<MemoryRecallEvent | null>(null);
+  const [userContext, setUserContext] = useState<UserContextEvent | null>(null);
+  const [toolCallLog, setToolCallLog] = useState<ToolCallEvent[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const retriesRef = useRef(0);
   const reconnectTimeoutRef = useRef<number | null>(null);
   const shouldReconnectRef = useRef(false);
-  const { enqueueAudioChunk, warmUp: warmUpAudio, stopPlayback } = useAudioPlayer();
+  const { enqueueAudioChunk, warmUp: warmUpAudio, stopPlayback, analyserRef, isPlaying: isAudioPlaying, getAudioContext } = useAudioPlayer();
 
   const appendMessage = useCallback((role: "user" | "agent", text: string) => {
     setMessages((prev) => [...prev, { role, text, ts: new Date() }]);
@@ -48,6 +51,9 @@ export function useADKWebSocket(userId: string, sessionId: string) {
   useEffect(() => {
     setMessages([]);
     setRecommendedProducts([]);
+    setMemoryRecall(null);
+    setUserContext(null);
+    setToolCallLog([]);
   }, [sessionId]);
 
   const connect = useCallback(() => {
@@ -64,7 +70,7 @@ export function useADKWebSocket(userId: string, sessionId: string) {
         return;
       }
       setIsConnected(true);
-      setConnectionStatus("live");
+      setConnectionStatus("connecting");
       retriesRef.current = 0;
       ws.send(JSON.stringify({ type: "init", user_id: userId }));
     };
@@ -77,6 +83,14 @@ export function useADKWebSocket(userId: string, sessionId: string) {
       try {
         const event = JSON.parse(evt.data);
 
+        if (event.type === "session_ready") {
+          setConnectionStatus("live");
+          console.log(
+            `[ws] Session ready: catalog=${event.catalog_count ?? 0}, memory=${Boolean(event.has_memory)}, memoryFetchMs=${event.memory_fetch_ms ?? 0}`,
+          );
+          return;
+        }
+
         // Product recommendations pushed by the backend when the agent calls
         // recommend_products(). Replace the current set so the panel always
         // shows the most recent recommendation.
@@ -87,6 +101,32 @@ export function useADKWebSocket(userId: string, sessionId: string) {
             products.map((p: any) => ({ id: p.id, title: p.title })),
           );
           setRecommendedProducts(products);
+          return;
+        }
+
+        // Memory recalled at session start — for the memory panel display
+        if (event.type === "memory_recalled") {
+          setMemoryRecall({
+            raw: event.raw ?? "",
+            facts: event.facts ?? [],
+            fetchMs: event.fetch_ms ?? 0,
+            ts: new Date(),
+          });
+          return;
+        }
+
+        // Initial user profile + wishlist + occasions snapshot
+        if (event.type === "user_context") {
+          setUserContext(event as UserContextEvent);
+          return;
+        }
+
+        // Agent tool calls — track live mutations for the memory panel
+        if (event.type === "tool_called") {
+          setToolCallLog((prev) => [
+            ...prev,
+            { tool: event.tool as string, args: event.args ?? {}, ts: new Date() },
+          ]);
           return;
         }
 
@@ -211,6 +251,9 @@ export function useADKWebSocket(userId: string, sessionId: string) {
     connectionStatus,
     messages,
     recommendedProducts,
+    memoryRecall,
+    userContext,
+    toolCallLog,
     sendAudioChunk,
     sendSnapshot,
     sendText,
@@ -218,6 +261,9 @@ export function useADKWebSocket(userId: string, sessionId: string) {
     reconnect: connect,
     warmUpAudio,
     stopAudioPlayback,
-    ws: wsRef.current,
+    wsRef,
+    analyserRef,
+    isAudioPlaying,
+    getAudioContext,
   };
 }

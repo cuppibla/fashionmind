@@ -48,6 +48,50 @@ export interface Message {
   ts: Date;
 }
 
+export interface MemoryRecallEvent {
+  raw: string;
+  facts: Array<{ text: string; author?: string; timestamp?: string }>;
+  fetchMs: number;
+  ts: Date;
+}
+
+export interface UserContextEvent {
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    age?: number;
+    body_type?: string;
+  };
+  upcoming_occasions: Array<{
+    id: string;
+    name: string;
+    date?: string;
+    notes?: string;
+  }>;
+  wishlist: Array<{
+    id: string;
+    item_name: string;
+    brand?: string;
+    category?: string;
+    price?: number;
+  }>;
+  recent_purchases: Array<{
+    id: string;
+    item_name: string;
+    brand?: string;
+    category?: string;
+    purchased_at: string;
+    notes?: string;
+  }>;
+}
+
+export interface ToolCallEvent {
+  tool: string;
+  args: Record<string, unknown>;
+  ts: Date;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, options);
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${path}`);
